@@ -185,11 +185,6 @@ class SettingsUI {
 
 // Initialize the settings UI and lightning effect
 document.addEventListener("DOMContentLoaded", () => {
-  const canvas = document.querySelector("canvas");
-  canvas.width = window.innerWidth;
-  canvas.height = window.innerHeight;
-  const lightningEffect = new LightningParticle(canvas, config);
-
   new SettingsUI(config, true, (newConfig) => {
     lightningEffect.updateConfig(newConfig);
   });
