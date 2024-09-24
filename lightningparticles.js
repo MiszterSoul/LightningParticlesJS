@@ -34,8 +34,8 @@ class LightningParticle {
       minActiveLightning: config.minActiveLightning ?? 1, // Minimum number of active lightning bolts
       maxActiveLightning: config.maxActiveLightning ?? 5, // Maximum number of active lightning bolts
       backgroundColor: config.backgroundColor ?? "rgba(0, 0, 0, 0.75)", // Background color of the canvas
-      particleBlendMode: config.particleBlendMode ?? "screen", // Blend mode for particles
-      lightningBlendMode: config.lightningBlendMode ?? "screen", // Blend mode for lightning
+      particleBlendMode: config.particleBlendMode ?? "source-over", // Blend mode for particles
+      lightningBlendMode: config.lightningBlendMode ?? "source-over", // Blend mode for lightning
       fpsLimit: config.fpsLimit ?? 60, // Frame rate limit for the animation
       pauseOnBlur: config.pauseOnBlur ?? true, // Pause animation when page is not in focus
     };
