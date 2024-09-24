@@ -11,13 +11,13 @@ This project implements an interactive lightning and particle effect using HTML5
 ## Demo
 
 ### Particle Effect with Lightning
-![Particle Effect](assets/example1.gif)
+![Particle Effect](https://i.imgur.com/Ql7OfvD.gif)
 
 ### Lightning Effect
-![Lightning Effect](assets/example2.gif)
+![Lightning Effect](https://i.imgur.com/KXLEGuv.gif)
 
 ### Particle Effect
-![Particle Effect](assets/example3.gif)
+![Particle Effect](https://i.imgur.com/7YAirI8.gif)
 
 ## Usage
 
