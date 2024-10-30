@@ -19,6 +19,8 @@ This project implements an interactive lightning and particle effect using HTML5
 
 ![Particle Effect](https://i.imgur.com/7YAirI8.gif)
 
+For more examples, see the [examples documentation](docs/examples.md).
+
 ## Usage
 
 1. Include the `lightningparticles.js` file in your HTML:
@@ -41,6 +43,8 @@ const lightningEffect = new LightningParticle(canvas, {
   // Optional configuration options
 });
 ```
+
+For detailed usage instructions, see the [usage documentation](docs/usage.md).
 
 ## Configuration Options
 
@@ -92,6 +96,8 @@ The `LightningParticle` constructor accepts a configuration object with the foll
 | particleAdjustStep        | Particle count adjustment step                                 | 15                            |
 | pauseOnScroll             | Pause animation when the canvas is not in the viewport         | false                         |
 
+For a comprehensive list of configuration options, see the [configuration documentation](docs/configuration.md).
+
 ## Updating Configuration
 
 You can update the configuration at runtime using the `updateConfig` method:
@@ -102,6 +108,14 @@ lightningEffect.updateConfig({
   lightningFrequency: 0.05,
 });
 ```
+
+## Documentation
+
+This project includes the following documentation files:
+
+- `docs/usage.md`: Detailed usage instructions, including how to include the script, initialize the effect, and customize the configuration options.
+- `docs/configuration.md`: A comprehensive list of configuration options with descriptions and default values.
+- `docs/examples.md`: Example HTML files demonstrating different configurations and use cases.
 
 ## Author
 
