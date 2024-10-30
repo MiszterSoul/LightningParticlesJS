@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Lightning Particles JS Example Custom Colors</title>
+        <link rel="stylesheet" href="/examples/lightningparticles.css" />
+    </head>
+
+    <body>
+        <div id="canvas-container">
+            <canvas></canvas>
+        </div>
+        <script src="/lightningparticles.js"></script>
+        <script src="/examples/lightningparticles_settings.js"></script>
+        <script type="text/javascript">
+            const config = {
+                particleColor: "#4a4a4a",
+                lineColor: "#ffffff",
+                lightningColor: "#ff00ff",
+                lightningGlowColor: "#ff00ff",
+                particleOpacity: 0.8,
+                particleCount: 350,
+                particleMinSize: 0.5,
+                particleMaxSize: 2,
+                particleSpeed: 1,
+                lineOpacity: 0.6,
+                lineThickness: 0.5,
+                maxDistance: 50,
+                lightningOpacity: 0.8,
+                lightningThickness: 2,
+                lightningFrequency: 0.03,
+                lightningGlow: 100,
+                globalLightningDirection: false,
+                lightningAngle: Math.PI / 2,
+                lightningThroughParticles: true,
+                minLightningSegments: 3,
+                maxLightningSegments: 20,
+                enableSplits: true,
+                minSplitSegments: 3,
+                maxSplits: 3,
+                splitProbability: 0.3,
+                minLightningLifetime: 30,
+                maxLightningLifetime: 60,
+                instantLightning: false,
+                fpsLimit: 60,
+                backgroundColor: "rgba(0, 0, 0, 0.75)",
+                particleBlendMode: "screen",
+                lightningBlendMode: "screen",
+                pauseOnBlur: false,
+            };
+
+            document.addEventListener("DOMContentLoaded", () => {
+                const canvas = document.querySelector("canvas");
+                canvas.width = window.innerWidth;
+                canvas.height = window.innerHeight;
+                const lightningEffect = new LightningParticle(canvas, config);
+
+                new SettingsUI(config, true, (newConfig) => {
+                    lightningEffect.updateConfig(newConfig);
+                });
+            });
+        </script>
+    </body>
+</html>
