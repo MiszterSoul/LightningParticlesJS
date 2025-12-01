@@ -1,999 +1,1089 @@
-class LightningParticle {
-  constructor(canvas, config = {}) {
-    this.canvas = canvas;
-    this.ctx = canvas.getContext('2d');
+/**
+ * LightningParticles.js v2.0.0
+ * A high-performance particle system with lightning effects
+ *
+ * @author MiszterSoul
+ * @license MIT
+ * @see https://github.com/MiszterSoul/LightningParticlesJS
+ */
 
-    // Configuration settings for the LightningParticle class
-    this.config = {
+(function (global, factory) {
+  typeof exports === 'object' && typeof module !== 'undefined' ? module.exports = factory() :
+    typeof define === 'function' && define.amd ? define(factory) :
+      (global = typeof globalThis !== 'undefined' ? globalThis : global || self, global.LightningParticle = factory());
+})(this, (function () {
+  'use strict';
+
+  /**
+   * @class LightningParticle
+   * @description High-performance particle system with lightning effects for HTML5 Canvas
+   */
+  class LightningParticle {
+    static VERSION = '2.0.0';
+
+    // Default configuration with type annotations for clarity
+    static DEFAULTS = Object.freeze({
       // Particle settings
-      particleCount: config.particleCount ?? 350, // Number of particles
-      particleColor: config.pparticleColor ?? '#4a4a4a', // Color of particles
-      particleOpacity: config.particleOpacity ?? 0.8, // Opacity of particles
-      particleMinSize: config.particleMinSize ?? 0.5, // Minimum size of particles
-      particleMaxSize: config.particleMaxSize ?? 2, // Maximum size of particles
-      particleSpeed: config.particleSpeed ?? 1, // Speed of particles
-      particleBlendMode: config.particleBlendMode ?? 'source-over', // Blend mode for particles
-      minParticleCount: config.minParticleCount ?? 25, // Minimum number of particles
-      maxParticleCount: config.maxParticleCount ?? 1500, // Maximum number of particles
-      particleAdjustStep: config.particleAdjustStep ?? 15, // Step size for adjusting particle count
+      particleCount: 350,
+      particleColor: '#4a4a4a',
+      particleOpacity: 0.8,
+      particleMinSize: 0.5,
+      particleMaxSize: 2,
+      particleSpeed: 1,
+      particleBlendMode: 'source-over',
+      minParticleCount: 25,
+      maxParticleCount: 1500,
+      particleAdjustStep: 15,
 
       // Line settings
-      lineColor: config.lineColor ?? '#ffffff', // Color of lines
-      lineOpacity: config.lineOpacity ?? 0.6, // Opacity of lines
-      lineThickness: config.lineThickness ?? 0.5, // Thickness of lines
-      maxDistance: config.maxDistance ?? 50, // Maximum distance for line connections
+      lineColor: '#ffffff',
+      lineOpacity: 0.6,
+      lineThickness: 0.5,
+      maxDistance: 50,
 
       // Lightning settings
-      lightningColor: config.lightningColor ?? '#00ffff', // Color of lightning
-      lightningGlowColor: config.lightningGlowColor ?? '#00ffff', // Glow color of lightning
-      lightningOpacity: config.lightningOpacity ?? 0.8, // Opacity of lightning
-      lightningThickness: config.lightningThickness ?? 2, // Thickness of lightning
-      lightningFrequency: config.lightningFrequency ?? 0.03, // Frequency of lightning strikes
-      lightningGlow: config.lightningGlow ?? 100, // Glow intensity of lightning
-      globalLightningDirection: config.globalLightningDirection ?? false, // Global direction for lightning
-      lightningAngle: config.lightningAngle ?? Math.PI / 2, // Angle of lightning
-      lightningThroughParticles: config.lightningThroughParticles ?? true, // Whether lightning passes through particles
-      minLightningSegments: config.minLightningSegments ?? 3, // Minimum number of lightning segments
-      maxLightningSegments: config.maxLightningSegments ?? 20, // Maximum number of lightning segments
-      enableSplits: config.enableSplits ?? true, // Enable lightning splits
-      minSplitSegments: config.minSplitSegments ?? 3, // Minimum number of split segments
-      maxSplits: config.maxSplits ?? 3, // Maximum number of splits
-      splitProbability: config.splitProbability ?? 0.3, // Probability of lightning splits
-      minLightningLifetime: config.minLightningLifetime ?? 30, // Minimum lifetime of lightning
-      maxLightningLifetime: config.maxLightningLifetime ?? 60, // Maximum lifetime of lightning
-      instantLightning: config.instantLightning ?? false, // Enable instant lightning
-      lightningBlendMode: config.lightningBlendMode ?? 'source-over', // Blend mode for lightning
+      lightningColor: '#00ffff',
+      lightningGlowColor: '#00ffff',
+      lightningOpacity: 0.8,
+      lightningThickness: 2,
+      lightningFrequency: 0.03,
+      lightningGlow: 100,
+      globalLightningDirection: false,
+      lightningAngle: Math.PI / 2,
+      lightningThroughParticles: true,
+      minLightningSegments: 3,
+      maxLightningSegments: 20,
+      enableSplits: true,
+      minSplitSegments: 3,
+      maxSplits: 3,
+      splitProbability: 0.3,
+      minLightningLifetime: 30,
+      maxLightningLifetime: 60,
+      instantLightning: false,
+      lightningBlendMode: 'source-over',
 
       // Collision-triggered lightning settings
-      enableLightningOnCollision: config.enableLightningOnCollision ?? false, // Enable lightning on collision
-      collisionLightningColor: config.collisionLightningColor ?? '#ff0000', // Color of collision-triggered lightning
-      collisionLightningGlowColor: config.collisionLightningGlowColor ?? '#ff0000', // Glow color of collision-triggered lightning
-      collisionLightningOpacity: config.collisionLightningOpacity ?? 0.9, // Opacity of collision-triggered lightning
-      collisionLightningThickness: config.collisionLightningThickness ?? 3, // Thickness of collision-triggered lightning
-      collisionLightningLifetime: config.collisionLightningLifetime ?? 50, // Lifetime of collision-triggered lightning
-      collisionLightningDelay: config.collisionLightningDelay ?? 1000, // Delay before collision-triggered lightning
-      collisionLightningMinDistance: config.collisionLightningMinDistance ?? 15, // Minimum distance for collision-triggered lightning
-      collisionLightningIntensity: config.collisionLightningIntensity ?? 50, // Intensity of collision-triggered lightning
-      collisionEnableSplits: config.collisionEnableSplits ?? true, // Enable splits for collision-triggered lightning
-      collisionSplitProbability: config.collisionSplitProbability ?? 0.3, // Probability of splits for collision-triggered lightning
-      collisionMinSplitSegments: config.collisionMinSplitSegments ?? 3, // Minimum number of split segments for collision-triggered lightning
-      collisionMaxSplits: config.collisionMaxSplits ?? 3, // Maximum number of splits for collision-triggered lightning
+      enableLightningOnCollision: false,
+      collisionLightningColor: '#ff0000',
+      collisionLightningGlowColor: '#ff0000',
+      collisionLightningOpacity: 0.9,
+      collisionLightningThickness: 3,
+      collisionLightningLifetime: 50,
+      collisionLightningDelay: 1000,
+      collisionLightningMinDistance: 15,
+      collisionLightningIntensity: 50,
+      collisionEnableSplits: true,
+      collisionSplitProbability: 0.3,
+      collisionMinSplitSegments: 3,
+      collisionMaxSplits: 3,
 
       // General settings
-      backgroundColor: config.backgroundColor ?? 'rgba(0, 0, 0, 0.75)', // Background color
-      fpsLimit: config.fpsLimit ?? 60, // Frames per second limit
-      pauseOnBlur: config.pauseOnBlur ?? true, // Pause animation when window loses focus
-      referenceResolution: config.referenceResolution ?? { width: 1920, height: 1080 }, // Reference resolution for scaling
-      referenceParticleCount: config.referenceParticleCount ?? config.particleCount ?? 350, // Reference particle count for scaling
-      minFPS: config.minFPS ?? 5, // Minimum frames per second
-      maxFPS: config.maxFPS ?? 144, // Maximum frames per second
-      pauseOnScroll: config.pauseOnScroll ?? false, // Pause animation on scroll
-      borderOffset: config.borderOffset ?? 5, // Offset from the border
-    };
+      backgroundColor: 'rgba(0, 0, 0, 0.75)',
+      fpsLimit: 60,
+      pauseOnBlur: true,
+      referenceResolution: { width: 1920, height: 1080 },
+      referenceParticleCount: 350,
+      minFPS: 5,
+      maxFPS: 144,
+      pauseOnScroll: false,
+      borderOffset: 5,
+      resetOnResume: false,
+    });
 
-    // Initialize properties
-    this.particles = [];
-    this.lightning = [];
-    this.lastTime = 0;
-    this.deltaTime = 0;
-    this.fpsInterval = 1000 / this.config.fpsLimit;
-    this.fps = 0;
-    this.frameCount = 0;
-    this.lastFpsUpdate = performance.now();
-    this.isRunning = true;
-    this.isPaused = false;
-    this.isScrollPaused = false;
+    /**
+     * Creates a new LightningParticle instance
+     * @param {HTMLCanvasElement} canvas - The canvas element to render on
+     * @param {Object} config - Configuration options
+     */
+    constructor(canvas, config = {}) {
+      if (!(canvas instanceof HTMLCanvasElement)) {
+        throw new TypeError('LightningParticle: First argument must be an HTMLCanvasElement');
+      }
 
-    // Bind methods
-    this.resize = this.resize.bind(this);
-    this.animate = this.animate.bind(this);
-    this.handleVisibilityChange = this.handleVisibilityChange.bind(this);
-    this.handleFocus = this.handleFocus.bind(this);
-    this.handleBlur = this.handleBlur.bind(this);
-    this.handleScroll = this.handleScroll.bind(this);
+      this.canvas = canvas;
+      this.ctx = canvas.getContext('2d', {
+        alpha: true,
+        desynchronized: true // Hint for performance optimization
+      });
 
-    this.avoidableAreas = [];
+      // Merge config with defaults using nullish coalescing
+      this.config = { ...LightningParticle.DEFAULTS };
+      this._applyConfig(config);
 
-    // Initialize collision-triggered lightning tracking
-    this.lastCollisionLightningTime = 0;
-    this.collisionLightningPositions = []; // Array to store recent lightning positions
+      // Initialize state
+      this._initState();
 
-    // Set up event listeners
-    this.setupEventListeners();
+      // Bind methods for event handlers (using arrow functions for cleaner binding)
+      this._boundResize = this.resize.bind(this);
+      this._boundAnimate = this._animate.bind(this);
+      this._boundHandleVisibility = this._handleVisibilityChange.bind(this);
+      this._boundHandleFocus = this._handleFocus.bind(this);
+      this._boundHandleBlur = this._handleBlur.bind(this);
 
-    // Initial setup
-    this.resize();
-    requestAnimationFrame(this.animate);
-  }
+      // Set up event listeners
+      this._setupEventListeners();
 
-  /**
-   * Sets up the necessary event listeners.
-   */
-  setupEventListeners() {
-    window.addEventListener('resize', this.resize);
-    document.addEventListener('visibilitychange', this.handleVisibilityChange);
-    window.addEventListener('focus', this.handleFocus);
-    window.addEventListener('blur', this.handleBlur);
-    if (this.config.pauseOnScroll) {
-      this.observer = new IntersectionObserver(
-        (entries) => {
-          entries.forEach((entry) => {
+      // Initial setup
+      this.resize();
+      this._rafId = requestAnimationFrame(this._boundAnimate);
+    }
+
+    /**
+     * Apply configuration, merging with defaults
+     * @private
+     */
+    _applyConfig(config) {
+      for (const key in config) {
+        if (Object.prototype.hasOwnProperty.call(config, key) && config[key] !== undefined) {
+          this.config[key] = config[key];
+        }
+      }
+      // Set reference particle count if not explicitly provided
+      if (config.referenceParticleCount === undefined) {
+        this.config.referenceParticleCount = this.config.particleCount;
+      }
+    }
+
+    /**
+     * Initialize internal state
+     * @private
+     */
+    _initState() {
+      // Particle arrays
+      this.particles = [];
+      this.lightning = [];
+      this._lightningPool = []; // Object pool for lightning reuse
+
+      // Spatial hash grid for optimized particle connections
+      this._spatialGrid = new Map();
+      this._gridCellSize = this.config.maxDistance;
+
+      // Timing
+      this._lastTime = 0;
+      this._deltaTime = 0;
+      this._fpsInterval = 1000 / this.config.fpsLimit;
+      this._targetFrameTime = 1000 / 60; // 60fps reference
+
+      // FPS tracking
+      this._fps = 0;
+      this._frameCount = 0;
+      this._lastFpsUpdate = 0;
+
+      // State flags
+      this._isRunning = true;
+      this._isPaused = false;
+      this._isScrollPaused = false;
+
+      // Collision tracking
+      this.avoidableAreas = [];
+      this._lastCollisionLightningTime = 0;
+      this._collisionLightningPositions = [];
+
+      // Pre-calculate common values
+      this._maxDistanceSquared = this.config.maxDistance ** 2;
+      this._dampingFactor = 0.9;
+
+      // Reusable objects to reduce GC pressure
+      this._tempPoint = { x: 0, y: 0 };
+    }
+
+    /**
+     * Set up event listeners
+     * @private
+     */
+    _setupEventListeners() {
+      window.addEventListener('resize', this._boundResize, { passive: true });
+      document.addEventListener('visibilitychange', this._boundHandleVisibility);
+      window.addEventListener('focus', this._boundHandleFocus);
+      window.addEventListener('blur', this._boundHandleBlur);
+
+      if (this.config.pauseOnScroll) {
+        this._observer = new IntersectionObserver(
+          (entries) => {
+            const entry = entries[0];
             if (entry.isIntersecting) {
+              this._isScrollPaused = false;
               this.resume();
-              this.isScrollPaused = false;
             } else {
+              this._isScrollPaused = true;
               this.pause();
-              this.isScrollPaused = true;
             }
-          });
-        },
-        { threshold: 0 }
-      );
-      this.observer.observe(this.canvas);
+          },
+          { threshold: 0 }
+        );
+        this._observer.observe(this.canvas);
+      }
     }
-  }
 
-  /**
-   * Removes the event listeners.
-   */
-  removeEventListeners() {
-    window.removeEventListener('resize', this.resize);
-    document.removeEventListener('visibilitychange', this.handleVisibilityChange);
-    window.removeEventListener('focus', this.handleFocus);
-    window.removeEventListener('blur', this.handleBlur);
-    if (this.config.pauseOnScroll) {
-      window.removeEventListener('scroll', this.handleScroll);
-    }
-    if (this.config.pauseOnScroll && this.observer) {
-      this.observer.disconnect();
-      this.observer = null;
-    }
-  }
+    /**
+     * Remove event listeners and cleanup
+     * @private
+     */
+    _removeEventListeners() {
+      window.removeEventListener('resize', this._boundResize);
+      document.removeEventListener('visibilitychange', this._boundHandleVisibility);
+      window.removeEventListener('focus', this._boundHandleFocus);
+      window.removeEventListener('blur', this._boundHandleBlur);
 
-  /**
-   * Resizes the canvas and adjusts particle count based on new size.
-   */
-  resize() {
-    try {
-      // Set canvas dimensions to client dimensions
-      this.canvas.width = this.canvas.clientWidth;
-      this.canvas.height = this.canvas.clientHeight;
+      if (this._observer) {
+        this._observer.disconnect();
+        this._observer = null;
+      }
+    }
+
+    /**
+     * Resize handler - updates canvas and particle count
+     */
+    resize() {
+      const { clientWidth, clientHeight } = this.canvas;
+
+      if (clientWidth === 0 || clientHeight === 0) return;
+
+      this.canvas.width = clientWidth;
+      this.canvas.height = clientHeight;
 
       // Calculate particle density based on reference resolution
-      const currentArea = this.canvas.width * this.canvas.height;
-      const referenceArea =
-        this.config.referenceResolution.width * this.config.referenceResolution.height;
+      const currentArea = clientWidth * clientHeight;
+      const referenceArea = this.config.referenceResolution.width * this.config.referenceResolution.height;
       const particleDensity = this.config.referenceParticleCount / referenceArea;
 
       // Calculate target particle count
-      let targetParticleCount = Math.round(particleDensity * currentArea);
-      targetParticleCount = Math.max(
+      let targetCount = Math.round(particleDensity * currentArea);
+      targetCount = Math.max(
         this.config.minParticleCount,
-        Math.min(targetParticleCount, this.config.maxParticleCount)
+        Math.min(targetCount, this.config.maxParticleCount)
       );
 
-      // Update particle count in config
-      this.config.particleCount = targetParticleCount;
+      this.config.particleCount = targetCount;
 
-      // Adjust existing particles
-      this.particles.forEach((particle) => {
-        // Ensure particles are within bounds
-        particle.x = Math.max(0, Math.min(particle.x, this.canvas.width));
-        particle.y = Math.max(0, Math.min(particle.y, this.canvas.height));
-      });
+      // Adjust particles - clamp positions to bounds
+      const len = this.particles.length;
+      for (let i = 0; i < len; i++) {
+        const p = this.particles[i];
+        p.x = Math.max(p.radius, Math.min(p.x, clientWidth - p.radius));
+        p.y = Math.max(p.radius, Math.min(p.y, clientHeight - p.radius));
+      }
 
-      // Add or remove particles to match target count
-      while (this.particles.length > this.config.particleCount) {
+      // Adjust particle count
+      this._adjustParticleCount();
+
+      // Update spatial grid cell size
+      this._gridCellSize = this.config.maxDistance;
+    }
+
+    /**
+     * Adjust particle count to match target
+     * @private
+     */
+    _adjustParticleCount() {
+      const target = this.config.particleCount;
+
+      while (this.particles.length > target) {
         this.particles.pop();
       }
-      while (this.particles.length < this.config.particleCount) {
-        this.createParticle();
+
+      while (this.particles.length < target) {
+        this._createParticle();
       }
-    } catch (error) {
-      console.error('Error in resize:', error);
     }
-  }
 
-  /**
-   * Creates a new particle with random properties.
-   */
-  createParticle() {
-    const radius =
-      Math.random() * (this.config.particleMaxSize - this.config.particleMinSize) +
-      this.config.particleMinSize;
-    this.particles.push({
-      x: Math.random() * (this.canvas.width - 2 * radius) + radius, // Ensure particle starts within canvas bounds
-      y: Math.random() * (this.canvas.height - 2 * radius) + radius,
-      radius: radius,
-      color: this.config.particleColor,
-      velocity: {
-        x: (Math.random() - 0.5) * this.config.particleSpeed * 2,
-        y: (Math.random() - 0.5) * this.config.particleSpeed * 2,
-      },
-    });
-  }
+    /**
+     * Create a new particle
+     * @private
+     */
+    _createParticle() {
+      const { particleMinSize, particleMaxSize, particleSpeed, borderOffset } = this.config;
+      const radius = Math.random() * (particleMaxSize - particleMinSize) + particleMinSize;
+      const maxX = this.canvas.width - borderOffset - radius;
+      const maxY = this.canvas.height - borderOffset - radius;
+      const minX = borderOffset + radius;
+      const minY = borderOffset + radius;
 
-  updateParticles() {
-    const {
-      particleSpeed,
-      borderOffset,
-      enableLightningOnCollision,
-      collisionLightningDelay,
-      collisionLightningMinDistance,
-      collisionLightningIntensity,
-      pauseOnBlur
-    } = this.config;
+      const angle = Math.random() * Math.PI * 2;
 
-    // Use the destructured variables directly
-    const scaleFactor = this.deltaTime / (1000 / 60);
-    const dampingFactor = 0.9;
-
-    this.particles.forEach(particle => {
-      // Store previous position
-      const prevX = particle.x;
-      const prevY = particle.y;
-
-      // Update particle position
-      particle.x += particle.velocity.x * scaleFactor;
-      particle.y += particle.velocity.y * scaleFactor;
-
-      // Check collision with avoidable areas
-      const collidedArea = this.getCollidedAvoidableArea(particle, prevX, prevY);
-      if (collidedArea) {
-        const { area, side, collisionPoint } = collidedArea;
-
-        // Reverse the relevant velocity component based on collision side
-        if (side === 'left' || side === 'right') {
-          particle.velocity.x = -particle.velocity.x * dampingFactor;
-        }
-        if (side === 'top' || side === 'bottom') {
-          particle.velocity.y = -particle.velocity.y * dampingFactor;
-        }
-
-        // Reposition particle just outside the collided area to prevent sticking
-        switch (side) {
-          case 'left':
-            particle.x = area.x - particle.radius;
-            break;
-          case 'right':
-            particle.x = area.x + area.width + particle.radius;
-            break;
-          case 'top':
-            particle.y = area.y - particle.radius;
-            break;
-          case 'bottom':
-            particle.y = area.y + area.height + particle.radius;
-            break;
-        }
-
-        // Trigger collision-triggered lightning if enabled
-        if (this.config.enableLightningOnCollision) {
-          const currentTime = performance.now();
-
-          // Clean up old lightning positions beyond the min distance
-          this.collisionLightningPositions = this.collisionLightningPositions.filter(
-            (pos) => currentTime - pos.time < this.config.collisionLightningDelay
-          );
-
-          // Check if enough time has passed since the last collision-triggered lightning
-          const timeSinceLastLightning =
-            currentTime - this.lastCollisionLightningTime;
-
-          // Check distance from recent lightnings
-          const isFarEnough = this.collisionLightningPositions.every(
-            (pos) =>
-              Math.hypot(collisionPoint.x - pos.x, collisionPoint.y - pos.y) >=
-              this.config.collisionLightningMinDistance
-          );
-
-          if (
-            timeSinceLastLightning >= this.config.collisionLightningDelay &&
-            isFarEnough
-          ) {
-            // Create lightning at collision point with intensity and splitting
-            this.createLightning(
-              collisionPoint.x,
-              collisionPoint.y,
-              this.config.collisionLightningLifetime,
-              this.config.collisionLightningColor,
-              this.config.collisionLightningGlowColor,
-              this.config.collisionLightningOpacity,
-              this.config.collisionLightningThickness,
-              this.config.collisionLightningIntensity, // Pass intensity
-              'collision' // Specify type for collision lightning
-            );
-
-            // Update tracking variables
-            this.lastCollisionLightningTime = currentTime;
-            this.collisionLightningPositions.push({
-              x: collisionPoint.x,
-              y: collisionPoint.y,
-              time: currentTime,
-            });
-          }
-        }
-      }
-
-      // Boundary checks for canvas edges with borderOffset
-      // Only apply borderOffset here to maintain a buffer from the edges
-      if (particle.x - particle.radius < borderOffset) {
-        particle.velocity.x = -particle.velocity.x * dampingFactor;
-        particle.x = borderOffset + particle.radius;
-
-        // Optionally, trigger lightning on collision with canvas boundary
-        if (this.config.enableLightningOnCollision) {
-          const collisionPoint = { x: borderOffset, y: particle.y };
-          this.triggerCollisionLightning(collisionPoint);
-        }
-      } else if (particle.x + particle.radius > this.canvas.width - borderOffset) {
-        particle.velocity.x = -particle.velocity.x * dampingFactor;
-        particle.x = this.canvas.width - borderOffset - particle.radius;
-
-        // Optionally, trigger lightning on collision with canvas boundary
-        if (this.config.enableLightningOnCollision) {
-          const collisionPoint = { x: this.canvas.width - borderOffset, y: particle.y };
-          this.triggerCollisionLightning(collisionPoint);
-        }
-      }
-
-      if (particle.y - particle.radius < borderOffset) {
-        particle.velocity.y = -particle.velocity.y * dampingFactor;
-        particle.y = borderOffset + particle.radius;
-
-        // Optionally, trigger lightning on collision with canvas boundary
-        if (this.config.enableLightningOnCollision) {
-          const collisionPoint = { x: particle.x, y: borderOffset };
-          this.triggerCollisionLightning(collisionPoint);
-        }
-      } else if (particle.y + particle.radius > this.canvas.height - borderOffset) {
-        particle.velocity.y = -particle.velocity.y * dampingFactor;
-        particle.y = this.canvas.height - borderOffset - particle.radius;
-
-        // Optionally, trigger lightning on collision with canvas boundary
-        if (this.config.enableLightningOnCollision) {
-          const collisionPoint = { x: particle.x, y: this.canvas.height - borderOffset };
-          this.triggerCollisionLightning(collisionPoint);
-        }
-      }
-
-      // Normalize the velocity to maintain constant speed
-      const speed = Math.sqrt(particle.velocity.x ** 2 + particle.velocity.y ** 2);
-      if (speed > 0.01) { // Use a small threshold instead of strict inequality
-        particle.velocity.x = (particle.velocity.x / speed) * this.config.particleSpeed;
-        particle.velocity.y = (particle.velocity.y / speed) * this.config.particleSpeed;
-      } else {
-        // Assign a random direction if speed is too low
-        const angle = Math.random() * Math.PI * 2;
-        particle.velocity.x = Math.cos(angle) * this.config.particleSpeed;
-        particle.velocity.y = Math.sin(angle) * this.config.particleSpeed;
-      }
-
-    });
-  }
-
-  /**
-   * Draws particles on the canvas.
-   */
-  drawParticles() {
-    try {
-      this.ctx.globalCompositeOperation = this.config.particleBlendMode;
-      this.ctx.globalAlpha = this.config.particleOpacity;
-      this.ctx.fillStyle = this.config.particleColor;
-
-      this.particles.forEach((particle) => {
-        this.ctx.beginPath();
-        this.ctx.arc(particle.x, particle.y, particle.radius, 0, Math.PI * 2);
-        this.ctx.fill();
+      this.particles.push({
+        x: Math.random() * (maxX - minX) + minX,
+        y: Math.random() * (maxY - minY) + minY,
+        radius,
+        vx: Math.cos(angle) * particleSpeed,
+        vy: Math.sin(angle) * particleSpeed
       });
-
-      // Reset context settings
-      this.ctx.globalAlpha = 1;
-      this.ctx.globalCompositeOperation = 'source-over';
-    } catch (error) {
-      console.error('Error in drawParticles:', error);
     }
-  }
 
-  /**
-   * Connects particles with lines if they are within a certain distance.
-   */
-  connectParticles() {
-    try {
-      this.ctx.globalAlpha = this.config.lineOpacity;
-      this.ctx.strokeStyle = this.config.lineColor;
-      this.ctx.lineWidth = this.config.lineThickness;
+    /**
+     * Update spatial hash grid for efficient neighbor lookup
+     * @private
+     */
+    _updateSpatialGrid() {
+      this._spatialGrid.clear();
+      const cellSize = this._gridCellSize;
 
-      const maxDistanceSquared = this.config.maxDistance ** 2;
+      for (let i = 0, len = this.particles.length; i < len; i++) {
+        const p = this.particles[i];
+        const cellX = Math.floor(p.x / cellSize);
+        const cellY = Math.floor(p.y / cellSize);
+        const key = `${cellX},${cellY}`;
 
-      for (let i = 0; i < this.particles.length; i++) {
-        for (let j = i + 1; j < this.particles.length; j++) {
-          const dx = this.particles[i].x - this.particles[j].x;
-          const dy = this.particles[i].y - this.particles[j].y;
-          const distanceSquared = dx * dx + dy * dy;
+        if (!this._spatialGrid.has(key)) {
+          this._spatialGrid.set(key, []);
+        }
+        this._spatialGrid.get(key).push(i);
+      }
+    }
 
-          if (distanceSquared < maxDistanceSquared) {
-            this.ctx.beginPath();
-            this.ctx.moveTo(this.particles[i].x, this.particles[i].y);
-            this.ctx.lineTo(this.particles[j].x, this.particles[j].y);
-            this.ctx.stroke();
+    /**
+     * Get potential neighbors from spatial grid
+     * @private
+     */
+    _getNeighborIndices(x, y) {
+      const cellSize = this._gridCellSize;
+      const cellX = Math.floor(x / cellSize);
+      const cellY = Math.floor(y / cellSize);
+      const neighbors = [];
+
+      // Check surrounding cells (3x3 grid)
+      for (let dx = -1; dx <= 1; dx++) {
+        for (let dy = -1; dy <= 1; dy++) {
+          const key = `${cellX + dx},${cellY + dy}`;
+          const cell = this._spatialGrid.get(key);
+          if (cell) {
+            neighbors.push(...cell);
           }
         }
       }
 
-      // Reset context settings
-      this.ctx.globalAlpha = 1;
-    } catch (error) {
-      console.error('Error in connectParticles:', error);
+      return neighbors;
     }
-  }
 
-  /**
-   * Finds the closest particle to the given coordinates.
-   * @param {number} x - X coordinate
-   * @param {number} y - Y coordinate
-   * @returns {object|null} Closest particle or null
-   */
-  findClosestParticle(x, y) {
-    let closestDistSquared = Infinity;
-    let closestParticle = null;
+    /**
+     * Update all particles
+     * @private
+     */
+    _updateParticles() {
+      const {
+        particleSpeed, borderOffset, enableLightningOnCollision,
+        collisionLightningDelay, collisionLightningMinDistance
+      } = this.config;
 
-    for (const particle of this.particles) {
-      const dx = particle.x - x;
-      const dy = particle.y - y;
-      const distSquared = dx * dx + dy * dy;
+      const scaleFactor = this._deltaTime / this._targetFrameTime;
+      const canvasWidth = this.canvas.width;
+      const canvasHeight = this.canvas.height;
+      const dampingFactor = this._dampingFactor;
 
-      if (distSquared < closestDistSquared) {
-        closestDistSquared = distSquared;
-        closestParticle = particle;
+      for (let i = 0, len = this.particles.length; i < len; i++) {
+        const p = this.particles[i];
+        const prevX = p.x;
+        const prevY = p.y;
+
+        // Update position
+        p.x += p.vx * scaleFactor;
+        p.y += p.vy * scaleFactor;
+
+        // Check collision with avoidable areas
+        const collision = this._checkAreaCollision(p, prevX, prevY);
+        if (collision) {
+          this._handleAreaCollision(p, collision, dampingFactor);
+        }
+
+        // Boundary checks
+        this._handleBoundaryCollision(p, canvasWidth, canvasHeight, borderOffset, dampingFactor);
+
+        // Normalize velocity
+        this._normalizeVelocity(p, particleSpeed);
       }
     }
 
-    return closestParticle;
-  }
+    /**
+     * Check collision with avoidable areas
+     * @private
+     */
+    _checkAreaCollision(particle, prevX, prevY) {
+      const areas = this.avoidableAreas;
+      const len = areas.length;
 
-  /**
-   * Creates a lightning bolt starting from a given point.
-   * @param {number|null} startX - Starting X coordinate
-   * @param {number|null} startY - Starting Y coordinate
-   * @param {number|null} lifetime - Lifetime of the lightning bolt
-   * @param {string|null} color - Color of the lightning
-   * @param {string|null} glowColor - Glow color of the lightning
-   * @param {number|null} opacity - Opacity of the lightning
-   * @param {number|null} thickness - Thickness of the lightning
-   * @param {number|null} intensity - Intensity of the lightning's glow
-   * @param {string} type - Type of lightning ('general' or 'collision')
-   */
-  createLightning(startX = null, startY = null, lifetime = null, color = null, glowColor = null, opacity = null, thickness = null, intensity = null, type = 'general') {
-    const MAX_DEPTH = 3; // Define a maximum recursion depth
+      for (let i = 0; i < len; i++) {
+        const area = areas[i];
+        const r = particle.radius;
 
-    if (type === 'collision' && this.config.collisionEnableSplits === false) return;
-    if (type === 'general' && this.config.enableSplits === false) return;
-    if (type === 'collision' && this.collisionLightningPositions.length >= this.config.collisionMaxSplits) return;
-    if (type === 'general' && this.lightning.length >= this.config.maxSplits) return;
+        if (
+          particle.x + r > area.x &&
+          particle.x - r < area.x + area.width &&
+          particle.y + r > area.y &&
+          particle.y - r < area.y + area.height
+        ) {
+          // Calculate collision side
+          const fromLeft = Math.abs(particle.x - area.x);
+          const fromRight = Math.abs(particle.x - (area.x + area.width));
+          const fromTop = Math.abs(particle.y - area.y);
+          const fromBottom = Math.abs(particle.y - (area.y + area.height));
 
-    try {
-      if (this.particles.length === 0 && (startX === null || startY === null)) return;
+          const minDist = Math.min(fromLeft, fromRight, fromTop, fromBottom);
+          let side, collisionPoint;
+
+          if (minDist === fromLeft) {
+            side = 'left';
+            collisionPoint = { x: area.x, y: particle.y };
+          } else if (minDist === fromRight) {
+            side = 'right';
+            collisionPoint = { x: area.x + area.width, y: particle.y };
+          } else if (minDist === fromTop) {
+            side = 'top';
+            collisionPoint = { x: particle.x, y: area.y };
+          } else {
+            side = 'bottom';
+            collisionPoint = { x: particle.x, y: area.y + area.height };
+          }
+
+          return { area, side, collisionPoint };
+        }
+      }
+      return null;
+    }
+
+    /**
+     * Handle collision with avoidable area
+     * @private
+     */
+    _handleAreaCollision(particle, collision, dampingFactor) {
+      const { area, side, collisionPoint } = collision;
+
+      // Reverse velocity component
+      if (side === 'left' || side === 'right') {
+        particle.vx = -particle.vx * dampingFactor;
+        particle.x = side === 'left'
+          ? area.x - particle.radius
+          : area.x + area.width + particle.radius;
+      } else {
+        particle.vy = -particle.vy * dampingFactor;
+        particle.y = side === 'top'
+          ? area.y - particle.radius
+          : area.y + area.height + particle.radius;
+      }
+
+      // Trigger collision lightning
+      if (this.config.enableLightningOnCollision) {
+        this._triggerCollisionLightning(collisionPoint);
+      }
+    }
+
+    /**
+     * Handle boundary collision
+     * @private
+     */
+    _handleBoundaryCollision(particle, width, height, offset, dampingFactor) {
+      const r = particle.radius;
+
+      if (particle.x - r < offset) {
+        particle.vx = -particle.vx * dampingFactor;
+        particle.x = offset + r;
+        if (this.config.enableLightningOnCollision) {
+          this._triggerCollisionLightning({ x: offset, y: particle.y });
+        }
+      } else if (particle.x + r > width - offset) {
+        particle.vx = -particle.vx * dampingFactor;
+        particle.x = width - offset - r;
+        if (this.config.enableLightningOnCollision) {
+          this._triggerCollisionLightning({ x: width - offset, y: particle.y });
+        }
+      }
+
+      if (particle.y - r < offset) {
+        particle.vy = -particle.vy * dampingFactor;
+        particle.y = offset + r;
+        if (this.config.enableLightningOnCollision) {
+          this._triggerCollisionLightning({ x: particle.x, y: offset });
+        }
+      } else if (particle.y + r > height - offset) {
+        particle.vy = -particle.vy * dampingFactor;
+        particle.y = height - offset - r;
+        if (this.config.enableLightningOnCollision) {
+          this._triggerCollisionLightning({ x: particle.x, y: height - offset });
+        }
+      }
+    }
+
+    /**
+     * Normalize particle velocity
+     * @private
+     */
+    _normalizeVelocity(particle, targetSpeed) {
+      const speed = Math.sqrt(particle.vx ** 2 + particle.vy ** 2);
+
+      if (speed > 0.01) {
+        const scale = targetSpeed / speed;
+        particle.vx *= scale;
+        particle.vy *= scale;
+      } else {
+        const angle = Math.random() * Math.PI * 2;
+        particle.vx = Math.cos(angle) * targetSpeed;
+        particle.vy = Math.sin(angle) * targetSpeed;
+      }
+    }
+
+    /**
+     * Draw all particles
+     * @private
+     */
+    _drawParticles() {
+      const ctx = this.ctx;
+      const { particleBlendMode, particleOpacity, particleColor } = this.config;
+
+      ctx.globalCompositeOperation = particleBlendMode;
+      ctx.globalAlpha = particleOpacity;
+      ctx.fillStyle = particleColor;
+
+      // Batch draw particles
+      ctx.beginPath();
+      for (let i = 0, len = this.particles.length; i < len; i++) {
+        const p = this.particles[i];
+        ctx.moveTo(p.x + p.radius, p.y);
+        ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
+      }
+      ctx.fill();
+
+      ctx.globalAlpha = 1;
+      ctx.globalCompositeOperation = 'source-over';
+    }
+
+    /**
+     * Connect nearby particles with lines using spatial hashing
+     * @private
+     */
+    _connectParticles() {
+      const ctx = this.ctx;
+      const { lineOpacity, lineColor, lineThickness } = this.config;
+      const maxDistSq = this._maxDistanceSquared;
+      const particles = this.particles;
+
+      // Update spatial grid
+      this._updateSpatialGrid();
+
+      ctx.globalAlpha = lineOpacity;
+      ctx.strokeStyle = lineColor;
+      ctx.lineWidth = lineThickness;
+      ctx.beginPath();
+
+      const checkedPairs = new Set();
+
+      for (let i = 0, len = particles.length; i < len; i++) {
+        const p1 = particles[i];
+        const neighbors = this._getNeighborIndices(p1.x, p1.y);
+
+        for (let j = 0, nLen = neighbors.length; j < nLen; j++) {
+          const ni = neighbors[j];
+          if (ni <= i) continue; // Avoid checking same pair twice
+
+          const pairKey = i < ni ? `${i}-${ni}` : `${ni}-${i}`;
+          if (checkedPairs.has(pairKey)) continue;
+          checkedPairs.add(pairKey);
+
+          const p2 = particles[ni];
+          const dx = p1.x - p2.x;
+          const dy = p1.y - p2.y;
+          const distSq = dx * dx + dy * dy;
+
+          if (distSq < maxDistSq) {
+            ctx.moveTo(p1.x, p1.y);
+            ctx.lineTo(p2.x, p2.y);
+          }
+        }
+      }
+
+      ctx.stroke();
+      ctx.globalAlpha = 1;
+    }
+
+    /**
+     * Find closest particle to a point
+     * @private
+     */
+    _findClosestParticle(x, y) {
+      let closestDistSq = Infinity;
+      let closest = null;
+
+      for (let i = 0, len = this.particles.length; i < len; i++) {
+        const p = this.particles[i];
+        const dx = p.x - x;
+        const dy = p.y - y;
+        const distSq = dx * dx + dy * dy;
+
+        if (distSq < closestDistSq) {
+          closestDistSq = distSq;
+          closest = p;
+        }
+      }
+
+      return closest;
+    }
+
+    /**
+     * Get or create a lightning bolt from the pool
+     * @private
+     */
+    _getLightningBolt() {
+      if (this._lightningPool.length > 0) {
+        return this._lightningPool.pop();
+      }
+      return {
+        points: [],
+        color: '',
+        glowColor: '',
+        alpha: 0,
+        lifetime: 0,
+        currentLifetime: 0,
+        thickness: 0,
+        intensity: 0
+      };
+    }
+
+    /**
+     * Return a lightning bolt to the pool
+     * @private
+     */
+    _recycleLightningBolt(bolt) {
+      bolt.points.length = 0;
+      this._lightningPool.push(bolt);
+    }
+
+    /**
+     * Create a lightning bolt
+     * @param {number|null} startX - Starting X coordinate
+     * @param {number|null} startY - Starting Y coordinate
+     * @param {number|null} lifetime - Bolt lifetime
+     * @param {string|null} color - Bolt color
+     * @param {string|null} glowColor - Glow color
+     * @param {number|null} opacity - Bolt opacity
+     * @param {number|null} thickness - Bolt thickness
+     * @param {number|null} intensity - Glow intensity
+     * @param {string} type - 'general' or 'collision'
+     */
+    createLightning(
+      startX = null,
+      startY = null,
+      lifetime = null,
+      color = null,
+      glowColor = null,
+      opacity = null,
+      thickness = null,
+      intensity = null,
+      type = 'general'
+    ) {
+      const config = this.config;
+
+      // Check split limits
+      if (type === 'collision' && !config.collisionEnableSplits) return;
+      if (type === 'general' && !config.enableSplits && lifetime !== null) return;
+
+      if (this.particles.length === 0 && startX === null) return;
 
       // Determine starting point
-      let x =
-        startX !== null
-          ? startX
-          : this.particles[Math.floor(Math.random() * this.particles.length)].x;
-      let y =
-        startY !== null
-          ? startY
-          : this.particles[Math.floor(Math.random() * this.particles.length)].y;
-      const points = [{ x, y }];
+      let x = startX ?? this.particles[Math.floor(Math.random() * this.particles.length)].x;
+      let y = startY ?? this.particles[Math.floor(Math.random() * this.particles.length)].y;
 
-      // Determine initial angle and number of segments
-      let angle = this.config.globalLightningDirection
-        ? this.config.lightningAngle
+      const bolt = this._getLightningBolt();
+      bolt.points.push({ x, y });
+
+      // Determine angle and segments
+      let angle = config.globalLightningDirection
+        ? config.lightningAngle
         : Math.random() * Math.PI * 2;
-      const segments =
-        lifetime !== null
-          ? lifetime
-          : Math.floor(
-            Math.random() *
-            (this.config.maxLightningSegments - this.config.minLightningSegments + 1)
-          ) + this.config.minLightningSegments;
 
-      // Determine split configuration based on type
-      const enableSplits = type === 'collision' ? this.config.collisionEnableSplits : this.config.enableSplits;
-      const splitProbability = type === 'collision' ? this.config.collisionSplitProbability : this.config.splitProbability;
-      const minSplitSegments = type === 'collision' ? this.config.collisionMinSplitSegments : this.config.minSplitSegments;
-      const maxSplits = type === 'collision' ? this.config.collisionMaxSplits : this.config.maxSplits;
+      const segments = lifetime ?? Math.floor(
+        Math.random() * (config.maxLightningSegments - config.minLightningSegments + 1)
+      ) + config.minLightningSegments;
 
-      // Generate lightning segments
+      // Split configuration based on type
+      const enableSplits = type === 'collision' ? config.collisionEnableSplits : config.enableSplits;
+      const splitProbability = type === 'collision' ? config.collisionSplitProbability : config.splitProbability;
+      const minSplitSegments = type === 'collision' ? config.collisionMinSplitSegments : config.minSplitSegments;
+
+      // Generate segments
       for (let i = 0; i < segments; i++) {
         const length = Math.random() * 30 + 20;
         let newX = x + Math.cos(angle) * length;
         let newY = y + Math.sin(angle) * length;
 
-        // Adjust segment to pass through the closest particle
-        if (this.config.lightningThroughParticles) {
-          const closestParticle = this.findClosestParticle(newX, newY);
-          if (closestParticle) {
-            newX = closestParticle.x;
-            newY = closestParticle.y;
+        // Snap to nearest particle if enabled
+        if (config.lightningThroughParticles) {
+          const closest = this._findClosestParticle(newX, newY);
+          if (closest) {
+            newX = closest.x;
+            newY = closest.y;
           }
         }
 
-        points.push({ x: newX, y: newY });
+        bolt.points.push({ x: newX, y: newY });
 
-        // Create split lightning if conditions are met
-        if (
-          enableSplits &&
-          Math.random() < splitProbability &&
-          lifetime === null
-        ) {
-          const splitSegments =
-            Math.floor(Math.random() * (segments - i - this.config.minSplitSegments)) +
-            minSplitSegments;
-          this.createLightning(newX, newY, splitSegments, null, null, null, null, null, type);
+        // Create split
+        if (enableSplits && Math.random() < splitProbability && lifetime === null) {
+          const splitSegments = Math.floor(
+            Math.random() * (segments - i - minSplitSegments)
+          ) + minSplitSegments;
+
+          if (splitSegments > 0) {
+            this.createLightning(newX, newY, splitSegments, null, null, null, null, null, type);
+          }
         }
 
-        // Adjust angle for next segment
-        if (!this.config.globalLightningDirection) {
-          angle += ((Math.random() - 0.5) * Math.PI) / 4;
+        // Adjust angle
+        if (!config.globalLightningDirection) {
+          angle += (Math.random() - 0.5) * Math.PI / 4;
         }
 
         x = newX;
         y = newY;
 
-        // Break if segment goes outside canvas
+        // Break if out of bounds
         if (x < 0 || x > this.canvas.width || y < 0 || y > this.canvas.height) break;
       }
 
-      // Determine lifetime of the lightning bolt
-      const boltLifetime =
-        lifetime !== null
-          ? lifetime
-          : Math.floor(
-            Math.random() *
-            (this.config.maxLightningLifetime - this.config.minLightningLifetime + 1)
-          ) + this.config.minLightningLifetime;
+      // Set bolt properties
+      bolt.color = color ?? config.lightningColor;
+      bolt.glowColor = glowColor ?? config.lightningGlowColor;
+      bolt.alpha = opacity ?? config.lightningOpacity;
+      bolt.lifetime = lifetime ?? Math.floor(
+        Math.random() * (config.maxLightningLifetime - config.minLightningLifetime + 1)
+      ) + config.minLightningLifetime;
+      bolt.currentLifetime = 0;
+      bolt.thickness = thickness ?? config.lightningThickness;
+      bolt.intensity = intensity ?? config.lightningGlow;
 
-      // Determine color and glow color
-      const boltColor = color !== null ? color : this.config.lightningColor;
-      const boltGlowColor = glowColor !== null ? glowColor : this.config.lightningGlowColor;
-      const boltOpacity = opacity !== null ? opacity : this.config.lightningOpacity;
-      const boltThickness = thickness !== null ? thickness : this.config.lightningThickness;
-      const boltIntensity = intensity !== null ? intensity : this.config.lightningGlow;
-
-      // Add lightning bolt to array
-      this.lightning.push({
-        points,
-        color: boltColor,
-        glowColor: boltGlowColor,
-        alpha: boltOpacity,
-        lifetime: boltLifetime,
-        currentLifetime: 0,
-        thickness: boltThickness,
-        intensity: boltIntensity, // Add intensity property
-      });
-    } catch (error) {
-      console.error('Error in createLightning:', error);
+      this.lightning.push(bolt);
     }
-  }
 
-  /**
-   * Draws lightning bolts on the canvas.
-   */
-  drawLightning() {
-    this.ctx.globalCompositeOperation = this.config.lightningBlendMode;
+    /**
+     * Draw all lightning bolts
+     * @private
+     */
+    _drawLightning() {
+      const ctx = this.ctx;
+      const { lightningBlendMode, instantLightning } = this.config;
 
-    for (let i = this.lightning.length - 1; i >= 0; i--) {
-      const bolt = this.lightning[i];
-      this.ctx.save();
-      this.ctx.beginPath();
-      this.ctx.moveTo(bolt.points[0].x, bolt.points[0].y);
+      ctx.globalCompositeOperation = lightningBlendMode;
 
-      let segmentCount;
-      if (this.config.instantLightning) {
-        segmentCount = bolt.points.length;
-      } else {
+      for (let i = this.lightning.length - 1; i >= 0; i--) {
+        const bolt = this.lightning[i];
+
+        ctx.save();
+        ctx.beginPath();
+        ctx.moveTo(bolt.points[0].x, bolt.points[0].y);
+
+        const segmentCount = instantLightning
+          ? bolt.points.length
+          : Math.floor((bolt.currentLifetime / bolt.lifetime) * bolt.points.length);
+
+        for (let j = 1; j < segmentCount; j++) {
+          ctx.lineTo(bolt.points[j].x, bolt.points[j].y);
+        }
+
+        ctx.shadowColor = bolt.glowColor;
+        ctx.shadowBlur = bolt.intensity;
+
+        // Calculate fading alpha
         const progress = bolt.currentLifetime / bolt.lifetime;
-        segmentCount = Math.floor(progress * bolt.points.length);
-      }
+        const currentAlpha = bolt.alpha * (1 - progress);
 
-      for (let j = 1; j < segmentCount; j++) {
-        this.ctx.lineTo(bolt.points[j].x, bolt.points[j].y);
-      }
+        ctx.globalAlpha = Math.max(0, currentAlpha);
+        ctx.strokeStyle = bolt.color;
+        ctx.lineWidth = bolt.thickness;
+        ctx.stroke();
+        ctx.restore();
 
-      this.ctx.shadowColor = bolt.glowColor;
-      this.ctx.shadowBlur = bolt.intensity;
-      this.ctx.shadowOffsetX = 0;
-      this.ctx.shadowOffsetY = 0;
+        bolt.currentLifetime++;
 
-      bolt.alpha = Math.max(bolt.alpha * (1 - bolt.currentLifetime / bolt.lifetime), 0);
-
-      this.ctx.globalAlpha = bolt.alpha;
-      this.ctx.strokeStyle = bolt.color;
-      this.ctx.lineWidth = bolt.thickness;
-      this.ctx.stroke();
-      this.ctx.restore();
-
-      bolt.currentLifetime++;
-
-      if (bolt.currentLifetime >= bolt.lifetime || bolt.alpha <= 0) {
-        this.lightning.splice(i, 1);
-      }
-    }
-
-    // Reset context settings
-    this.ctx.globalAlpha = 1;
-    this.ctx.globalCompositeOperation = 'source-over';
-  }
-
-  /**
-   * Draws the background of the canvas.
-   */
-  drawBackground() {
-    this.ctx.fillStyle = this.config.backgroundColor;
-    this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
-  }
-
-  /**
-   * The main animation loop.
-   * @param {DOMHighResTimeStamp} timestamp - The current time
-   */
-  animate(timestamp) {
-
-    if (!this.isRunning) return;
-
-    requestAnimationFrame(this.animate);
-
-    if (this.isPaused) return;
-
-    // Calculate deltaTime with a maximum cap (e.g., 100ms)
-    this.deltaTime = Math.min(timestamp - this.lastTime, 100);
-
-    // Update FPS counter
-    this.frameCount++;
-    const now = performance.now();
-    const elapsed = now - this.lastFpsUpdate;
-
-    if (elapsed >= 1000) {
-      this.fps = (this.frameCount / elapsed) * 1000;
-      this.frameCount = 0;
-      this.lastFpsUpdate = now;
-
-      // Adjust particle count based on FPS
-      if (
-        this.fps < this.config.minFPS &&
-        this.particles.length > this.config.minParticleCount
-      ) {
-        // Reduce particle count
-        for (let i = 0; i < this.config.particleAdjustStep; i++) {
-          if (this.particles.length > this.config.minParticleCount) {
-            this.particles.pop();
-          }
-        }
-      } else if (
-        this.fps > this.config.maxFPS &&
-        this.particles.length < this.config.maxParticleCount
-      ) {
-        // Increase particle count
-        for (let i = 0; i < this.config.particleAdjustStep; i++) {
-          if (this.particles.length < this.config.particleCount) {
-            this.createParticle();
-          }
+        // Remove expired bolts
+        if (bolt.currentLifetime >= bolt.lifetime) {
+          this._recycleLightningBolt(bolt);
+          this.lightning.splice(i, 1);
         }
       }
+
+      ctx.globalAlpha = 1;
+      ctx.globalCompositeOperation = 'source-over';
     }
 
-    // FPS limit
-    if (timestamp - this.lastTime < this.fpsInterval) {
-      return;
+    /**
+     * Draw background
+     * @private
+     */
+    _drawBackground() {
+      this.ctx.fillStyle = this.config.backgroundColor;
+      this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
     }
 
-    this.lastTime = timestamp;
+    /**
+     * Trigger collision lightning at a point
+     * @private
+     */
+    _triggerCollisionLightning(point) {
+      if (!this.config.enableLightningOnCollision) return;
 
-    // Drawing operations
-    this.drawBackground();
+      const now = performance.now();
+      const config = this.config;
 
-    // Create and draw lightning
-    if (
-      this.config.lightningOpacity > 0 &&
-      Math.random() < this.config.lightningFrequency
-    ) {
-      this.createLightning();
-    }
-    this.drawLightning();
-
-    // Update and draw particles
-    if (this.particles.length < this.config.particleCount) this.createParticle();
-    this.updateParticles();
-    this.connectParticles();
-    this.drawParticles();
-  }
-
-  /**
-   * Updates the configuration and adjusts particles accordingly.
-   * @param {object} newConfig - New configuration settings
-   */
-  updateConfig(newConfig) {
-    // Destructure and exclude randomizeDirection from newConfig
-    const { randomizeDirection, ...filteredConfig } = newConfig;
-
-    Object.assign(this.config, filteredConfig);
-    this.fpsInterval = 1000 / this.config.fpsLimit;
-    this.lightning = [];
-
-    // Adjust particle count based on new config
-    while (this.particles.length > this.config.particleCount) {
-      this.particles.pop();
-    }
-    while (this.particles.length < this.config.particleCount) {
-      this.createParticle();
-    }
-
-    // Ensure particle count is within min and max limits
-    if (this.particles.length < this.config.minParticleCount) {
-      while (this.particles.length < this.config.minParticleCount) {
-        this.createParticle();
-      }
-    } else if (this.particles.length > this.config.maxParticleCount) {
-      while (this.particles.length > this.config.maxParticleCount) {
-        this.particles.pop();
-      }
-    }
-  }
-
-
-  /**
-   * Pauses the animation.
-   */
-  pause() {
-    this.isPaused = true;
-  }
-
-  /**
-   * Resumes the animation.
-   */
-  resume() {
-    if (!this.isPaused) return;
-    this.isPaused = false;
-    this.lastTime = performance.now();
-
-    // Remove or make optional the position reset
-    // Option 1: Remove the position reset
-    /*
-    this.particles.forEach(particle => {
-      particle.x = Math.random() * this.canvas.width;
-      particle.y = Math.random() * this.canvas.height;
-    });
-    */
-
-    // Option 2: Make it conditional based on a configuration flag
-    if (this.config.resetOnResume) {
-      this.particles.forEach(particle => {
-        particle.x = Math.random() * this.canvas.width;
-        particle.y = Math.random() * this.canvas.height;
-      });
-    }
-  }
-
-
-
-  /**
-   * Stops the animation and cleans up resources.
-   */
-  stop() {
-    this.isRunning = false;
-    this.removeEventListeners();
-    this.particles = [];
-    this.lightning = [];
-    this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
-  }
-
-  /**
-   * Handles visibility change events.
-   */
-  handleVisibilityChange() {
-    if (document.hidden && this.config.pauseOnBlur) {
-      this.pause();
-    } else if (!document.hidden && this.config.pauseOnBlur) {
-      // Check if the window size has changed before calling resize
-      const currentWidth = this.canvas.clientWidth;
-      const currentHeight = this.canvas.clientHeight;
-      if (this.canvas.width !== currentWidth || this.canvas.height !== currentHeight) {
-        this.resize();
-      }
-      this.lastTime = performance.now(); // Reset lastTime to avoid large delta
-      this.resume();
-    }
-  }
-
-
-  /**
-   * Handles window focus event.
-   */
-  handleFocus() {
-    if (this.config.pauseOnBlur) {
-      this.resume();
-    }
-  }
-
-  /**
-   * Handles window blur event.
-   */
-  handleBlur() {
-    if (this.config.pauseOnBlur) {
-      this.pause();
-    }
-  }
-
-  /**
-   * Handles the scroll event to pause/resume animation based on canvas visibility.
-   */
-  handleScroll() {
-    const rect = this.canvas.getBoundingClientRect();
-    const viewHeight = Math.max(document.documentElement.clientHeight, window.innerHeight);
-
-    const isInViewport = !(rect.bottom < 0 || rect.top - viewHeight >= 0);
-
-    if (isInViewport && this.isScrollPaused) {
-      this.resume();
-      this.isScrollPaused = false;
-      console.log('Resumed');
-    } else if (!isInViewport && !this.isScrollPaused) {
-      this.pause();
-      this.isScrollPaused = true;
-      console.log('Paused');
-    }
-  }
-
-  // Check if a particle is inside an avoidable area
-  isInsideAvoidableArea(particle) {
-    return this.avoidableAreas.some(area =>
-      particle.x > area.x &&
-      particle.x < area.x + area.width &&
-      particle.y > area.y &&
-      particle.y < area.y + area.height
-    );
-  }
-
-  // Function to update avoidable areas based on specific selector query
-  updateAvoidableAreas(selector) {
-    // Clear the existing avoidable areas
-    this.avoidableAreas = [];
-
-    // Query all elements based on the selector (e.g., '.btn' or 'a')
-    const elements = document.querySelectorAll(selector);
-
-    // Add each element's position and dimensions to the avoidable areas array
-    elements.forEach((element) => {
-      const rect = element.getBoundingClientRect();
-
-      // Convert the bounding rectangle coordinates to canvas space
-      const canvasRect = this.canvas.getBoundingClientRect();
-
-      this.avoidableAreas.push({
-        x: rect.left - canvasRect.left,
-        y: rect.top - canvasRect.top,
-        width: rect.width,
-        height: rect.height,
-      });
-    });
-  }
-
-
-  /**
-   * Determines if a particle has collided with any avoidable area and identifies the collision side.
-   * @param {object} particle - The particle object
-   * @param {number} prevX - Previous X position of the particle
-   * @param {number} prevY - Previous Y position of the particle
-   * @returns {object|null} - Returns the collided area, side, and collision point or null if no collision
-   */
-  getCollidedAvoidableArea(particle, prevX, prevY) {
-    for (const area of this.avoidableAreas) {
-      // Check if particle is overlapping with the area (considering particle radius)
-      const isOverlapping =
-        particle.x + particle.radius > area.x &&
-        particle.x - particle.radius < area.x + area.width &&
-        particle.y + particle.radius > area.y &&
-        particle.y - particle.radius < area.y + area.height;
-
-      if (isOverlapping) {
-        // Determine the side of collision by comparing distances
-        const fromLeft = Math.abs(particle.x - area.x);
-        const fromRight = Math.abs(particle.x - (area.x + area.width));
-        const fromTop = Math.abs(particle.y - area.y);
-        const fromBottom = Math.abs(particle.y - (area.y + area.height));
-
-        const minDist = Math.min(fromLeft, fromRight, fromTop, fromBottom);
-        let side = null;
-
-        if (minDist === fromLeft) {
-          side = 'left';
-        } else if (minDist === fromRight) {
-          side = 'right';
-        } else if (minDist === fromTop) {
-          side = 'top';
-        } else if (minDist === fromBottom) {
-          side = 'bottom';
-        }
-
-        // Determine collision point based on side
-        let collisionPoint = { x: particle.x, y: particle.y };
-        switch (side) {
-          case 'left':
-            collisionPoint.x = area.x;
-            collisionPoint.y = particle.y;
-            break;
-          case 'right':
-            collisionPoint.x = area.x + area.width;
-            collisionPoint.y = particle.y;
-            break;
-          case 'top':
-            collisionPoint.x = particle.x;
-            collisionPoint.y = area.y;
-            break;
-          case 'bottom':
-            collisionPoint.x = particle.x;
-            collisionPoint.y = area.y + area.height;
-            break;
-        }
-
-        return { area, side, collisionPoint };
-      }
-    }
-    return null;
-  }
-
-
-
-  /**
-   * Triggers a collision-triggered lightning at the specified point if delay and distance conditions are met.
-   * @param {object} collisionPoint - The {x, y} coordinates of the collision.
-   */
-  triggerCollisionLightning(collisionPoint) {
-    if (!this.config.enableLightningOnCollision) return;
-
-    const currentTime = performance.now();
-
-    // Clean up old lightning positions beyond the min distance and delay
-    this.collisionLightningPositions = this.collisionLightningPositions.filter(
-      (pos) => currentTime - pos.time < this.config.collisionLightningDelay
-    );
-
-    // Check time since last lightning
-    const timeSinceLastLightning =
-      currentTime - this.lastCollisionLightningTime;
-
-    // Check distance from recent lightnings
-    const isFarEnough = this.collisionLightningPositions.every(
-      (pos) =>
-        Math.hypot(collisionPoint.x - pos.x, collisionPoint.y - pos.y) >=
-        this.config.collisionLightningMinDistance
-    );
-
-    if (
-      timeSinceLastLightning >= this.config.collisionLightningDelay &&
-      isFarEnough
-    ) {
-      // Create lightning at collision point with intensity and splitting
-      this.createLightning(
-        collisionPoint.x,
-        collisionPoint.y,
-        this.config.collisionLightningLifetime,
-        this.config.collisionLightningColor,
-        this.config.collisionLightningGlowColor,
-        this.config.collisionLightningOpacity,
-        this.config.collisionLightningThickness,
-        this.config.collisionLightningIntensity, // Pass intensity
-        'collision' // Specify type for collision lightning
+      // Cleanup old positions
+      this._collisionLightningPositions = this._collisionLightningPositions.filter(
+        pos => now - pos.time < config.collisionLightningDelay
       );
 
-      // Update tracking variables
-      this.lastCollisionLightningTime = currentTime;
-      this.collisionLightningPositions.push({
-        x: collisionPoint.x,
-        y: collisionPoint.y,
-        time: currentTime,
+      // Check timing
+      if (now - this._lastCollisionLightningTime < config.collisionLightningDelay) return;
+
+      // Check distance
+      const isFarEnough = this._collisionLightningPositions.every(
+        pos => Math.hypot(point.x - pos.x, point.y - pos.y) >= config.collisionLightningMinDistance
+      );
+
+      if (!isFarEnough) return;
+
+      // Create lightning
+      this.createLightning(
+        point.x,
+        point.y,
+        config.collisionLightningLifetime,
+        config.collisionLightningColor,
+        config.collisionLightningGlowColor,
+        config.collisionLightningOpacity,
+        config.collisionLightningThickness,
+        config.collisionLightningIntensity,
+        'collision'
+      );
+
+      this._lastCollisionLightningTime = now;
+      this._collisionLightningPositions.push({ x: point.x, y: point.y, time: now });
+    }
+
+    /**
+     * Main animation loop
+     * @private
+     */
+    _animate(timestamp) {
+      if (!this._isRunning) return;
+
+      this._rafId = requestAnimationFrame(this._boundAnimate);
+
+      if (this._isPaused) return;
+
+      // Calculate delta time (capped at 100ms to handle tab switching)
+      this._deltaTime = Math.min(timestamp - this._lastTime, 100);
+
+      // FPS tracking
+      this._frameCount++;
+      const now = performance.now();
+      const elapsed = now - this._lastFpsUpdate;
+
+      if (elapsed >= 1000) {
+        this._fps = (this._frameCount / elapsed) * 1000;
+        this._frameCount = 0;
+        this._lastFpsUpdate = now;
+
+        // Dynamic particle adjustment based on FPS
+        this._adjustForPerformance();
+      }
+
+      // FPS limiting
+      if (timestamp - this._lastTime < this._fpsInterval) return;
+
+      this._lastTime = timestamp;
+
+      // Render frame
+      this._drawBackground();
+
+      // Lightning
+      if (this.config.lightningOpacity > 0 && Math.random() < this.config.lightningFrequency) {
+        this.createLightning();
+      }
+      this._drawLightning();
+
+      // Particles
+      if (this.particles.length < this.config.particleCount) {
+        this._createParticle();
+      }
+      this._updateParticles();
+      this._connectParticles();
+      this._drawParticles();
+    }
+
+    /**
+     * Adjust particle count based on performance
+     * @private
+     */
+    _adjustForPerformance() {
+      const { minFPS, maxFPS, minParticleCount, maxParticleCount, particleAdjustStep } = this.config;
+
+      if (this._fps < minFPS && this.particles.length > minParticleCount) {
+        // Reduce particles
+        const removeCount = Math.min(particleAdjustStep, this.particles.length - minParticleCount);
+        this.particles.length -= removeCount;
+      } else if (this._fps > maxFPS && this.particles.length < maxParticleCount) {
+        // Can potentially add particles
+        const addCount = Math.min(
+          particleAdjustStep,
+          this.config.particleCount - this.particles.length,
+          maxParticleCount - this.particles.length
+        );
+        for (let i = 0; i < addCount; i++) {
+          this._createParticle();
+        }
+      }
+    }
+
+    /**
+     * Handle visibility change
+     * @private
+     */
+    _handleVisibilityChange() {
+      if (document.hidden && this.config.pauseOnBlur) {
+        this.pause();
+      } else if (!document.hidden && this.config.pauseOnBlur) {
+        const { clientWidth, clientHeight } = this.canvas;
+        if (this.canvas.width !== clientWidth || this.canvas.height !== clientHeight) {
+          this.resize();
+        }
+        this._lastTime = performance.now();
+        this.resume();
+      }
+    }
+
+    /**
+     * Handle focus event
+     * @private
+     */
+    _handleFocus() {
+      if (this.config.pauseOnBlur && !this._isScrollPaused) {
+        this.resume();
+      }
+    }
+
+    /**
+     * Handle blur event
+     * @private
+     */
+    _handleBlur() {
+      if (this.config.pauseOnBlur) {
+        this.pause();
+      }
+    }
+
+    // ==================== PUBLIC API ====================
+
+    /**
+     * Update configuration at runtime
+     * @param {Object} newConfig - New configuration values
+     */
+    updateConfig(newConfig) {
+      const { randomizeDirection, ...filtered } = newConfig;
+
+      Object.assign(this.config, filtered);
+      this._fpsInterval = 1000 / this.config.fpsLimit;
+      this._maxDistanceSquared = this.config.maxDistance ** 2;
+      this._gridCellSize = this.config.maxDistance;
+
+      // Clear lightning on config change
+      while (this.lightning.length) {
+        this._recycleLightningBolt(this.lightning.pop());
+      }
+
+      this._adjustParticleCount();
+    }
+
+    /**
+     * Pause the animation
+     */
+    pause() {
+      this._isPaused = true;
+    }
+
+    /**
+     * Resume the animation
+     */
+    resume() {
+      if (!this._isPaused) return;
+
+      this._isPaused = false;
+      this._lastTime = performance.now();
+
+      if (this.config.resetOnResume) {
+        const { width, height } = this.canvas;
+        for (let i = 0, len = this.particles.length; i < len; i++) {
+          const p = this.particles[i];
+          p.x = Math.random() * width;
+          p.y = Math.random() * height;
+        }
+      }
+    }
+
+    /**
+     * Stop and cleanup the animation
+     */
+    stop() {
+      this._isRunning = false;
+
+      if (this._rafId) {
+        cancelAnimationFrame(this._rafId);
+        this._rafId = null;
+      }
+
+      this._removeEventListeners();
+      this.particles.length = 0;
+      this.lightning.length = 0;
+      this._lightningPool.length = 0;
+      this._spatialGrid.clear();
+      this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+    }
+
+    /**
+     * Get current FPS
+     * @returns {number} Current frames per second
+     */
+    getFPS() {
+      return Math.round(this._fps);
+    }
+
+    /**
+     * Get current particle count
+     * @returns {number} Number of active particles
+     */
+    getParticleCount() {
+      return this.particles.length;
+    }
+
+    /**
+     * Update avoidable areas from DOM elements
+     * @param {string} selector - CSS selector for elements to avoid
+     */
+    updateAvoidableAreas(selector) {
+      this.avoidableAreas = [];
+      const elements = document.querySelectorAll(selector);
+      const canvasRect = this.canvas.getBoundingClientRect();
+
+      elements.forEach(el => {
+        const rect = el.getBoundingClientRect();
+        this.avoidableAreas.push({
+          x: rect.left - canvasRect.left,
+          y: rect.top - canvasRect.top,
+          width: rect.width,
+          height: rect.height
+        });
       });
+    }
+
+    /**
+     * Check if animation is paused
+     * @returns {boolean} Whether animation is paused
+     */
+    isPaused() {
+      return this._isPaused;
+    }
+
+    /**
+     * Check if animation is running
+     * @returns {boolean} Whether animation is running
+     */
+    isRunning() {
+      return this._isRunning;
     }
   }
 
-}
+  return LightningParticle;
+}));

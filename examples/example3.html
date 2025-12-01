@@ -4,15 +4,15 @@
         <meta charset="UTF-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <title>Lightning Particles JS Example no lightning</title>
-        <link rel="stylesheet" href="/examples/lightningparticles.css" />
+        <link rel="stylesheet" href="lightningparticles.css" />
     </head>
 
     <body>
         <div id="canvas-container">
-            <canvas></canvas>
+            <canvas id="particle-canvas"></canvas>
         </div>
 
-        <script src="/lightningparticles.js"></script>
+        <script src="../lightningparticles.js"></script>
         <script type="text/javascript">
             const config = {
                 particleColor: "#4a4a4a",
@@ -51,9 +51,7 @@
             };
 
             document.addEventListener("DOMContentLoaded", () => {
-                const canvas = document.querySelector("canvas");
-                canvas.width = window.innerWidth;
-                canvas.height = window.innerHeight;
+                const canvas = document.getElementById("particle-canvas");
                 const lightningEffect = new LightningParticle(canvas, config);
             });
         </script>
